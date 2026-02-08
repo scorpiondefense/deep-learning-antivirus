@@ -13,7 +13,7 @@ from model import MalwareConvLSTM
 def export_onnx(
     model_path: str,
     output_dir: str,
-    opset_version: int = 17,
+    opset_version: int = 18,
     atol: float = 1e-5,
 ) -> str:
     """Export trained model to ONNX and verify numerical equivalence.

@@ -1,6 +1,6 @@
 //! Feature extraction - mirrors the Python implementation exactly.
 //!
-//! Each binary file -> fixed tensor of shape (64, 3, 16, 16):
+//! Each binary file → fixed tensor of shape (64, 3, 16, 16):
 //! - Read up to 2MB of the file (zero-pad if smaller)
 //! - Split into 64 chunks of 32,768 bytes each
 //! - Per chunk, compute 3 channels (each 16x16 = 256 values):
@@ -140,7 +140,7 @@ fn bigram_density(chunk: &[u8], bigram_table: &[(u8, u8)]) -> [f32; TOP_BIGRAMS]
     result
 }
 
-/// Extract features from a single file -> array of shape (64, 3, 16, 16).
+/// Extract features from a single file → array of shape (64, 3, 16, 16).
 pub fn extract_features(path: &Path, bigram_table: &[(u8, u8)]) -> Result<Array4<f32>> {
     let data = read_file_bytes(path)?;
 

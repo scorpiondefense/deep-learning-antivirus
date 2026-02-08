@@ -4,20 +4,27 @@ data/
 # Models (binary artifacts)
 models/*.pth
 models/*.onnx
+models/*.onnx.data
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
-dist/
-build/
 .venv/
 venv/
 *.egg
 
 # Rust
-scanner/target/
+target/
+
+# Dist binaries (built artifacts, not tracked)
+dist/macos/malware-scanner
+dist/macos/malware-scanner-gui
+dist/linux/malware-scanner
+dist/linux/malware-scanner-gui
+dist/windows/malware-scanner.exe
+dist/windows/malware-scanner-gui.exe
 
 # IDE
 .idea/

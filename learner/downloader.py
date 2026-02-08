@@ -11,9 +11,9 @@ import json
 import os
 import platform
 import shutil
-import zipfile
 from pathlib import Path
 
+import pyzipper
 import requests
 
 MALWAREBAZAAR_API = "https://mb-api.abuse.ch/api/v1/"
@@ -24,21 +24,39 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _get_api_headers() -> dict:
+    """Get API headers, including Auth-Key if set via environment variable."""
+    headers = {}
+    api_key = os.environ.get("MALWAREBAZAAR_API_KEY", "")
+    if api_key:
+        headers["Auth-Key"] = api_key
+    return headers
+
+
 def download_malware_samples(
     output_dir: str,
     count: int = 100,
     file_type: str = "exe",
 ) -> list[dict]:
-    """Download malware samples from MalwareBazaar."""
+    """Download malware samples from MalwareBazaar.
+
+    Set MALWAREBAZAAR_API_KEY env var for authenticated access.
+    Falls back to unauthenticated get_recent query if no key is set.
+    """
     os.makedirs(output_dir, exist_ok=True)
     manifest = []
+    headers = _get_api_headers()
 
     print(f"[*] Querying MalwareBazaar for {count} '{file_type}' samples...")
+    if not headers.get("Auth-Key"):
+        print("[*] No MALWAREBAZAAR_API_KEY set, using unauthenticated get_recent endpoint")
 
+    # Try get_recent (works without auth key)
     try:
         response = requests.post(
             MALWAREBAZAAR_API,
-            data={"query": "get_file_type", "file_type": file_type, "limit": count},
+            data={"query": "get_recent", "selector": str(min(count, 1000))},
+            headers=headers,
             timeout=60,
         )
         response.raise_for_status()
@@ -70,13 +88,14 @@ def download_malware_samples(
             dl_resp = requests.post(
                 MALWAREBAZAAR_API,
                 data={"query": "get_file", "sha256_hash": sha256},
+                headers=headers,
                 timeout=120,
             )
             dl_resp.raise_for_status()
 
-            # Response is a password-protected zip
+            # Response is a password-protected zip (uses AES encryption)
             zip_data = io.BytesIO(dl_resp.content)
-            with zipfile.ZipFile(zip_data) as zf:
+            with pyzipper.AESZipFile(zip_data) as zf:
                 names = zf.namelist()
                 if not names:
                     continue
@@ -95,7 +114,7 @@ def download_malware_samples(
             downloaded += 1
             print(f"  [{downloaded}/{count}] Downloaded {sha256[:16]}...")
 
-        except (requests.RequestException, zipfile.BadZipFile, KeyError) as e:
+        except (requests.RequestException, pyzipper.BadZipFile, KeyError) as e:
             print(f"  [!] Failed to download {sha256[:16]}: {e}")
             continue
 

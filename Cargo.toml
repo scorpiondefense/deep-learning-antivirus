@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/scanner-core",
+    "crates/scanner-cli",
+    "crates/scanner-gui",
+    "scanner",
+]
+resolver = "2"
