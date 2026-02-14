@@ -42,6 +42,10 @@ struct Cli {
     /// Only scan executable files (PE/ELF/Mach-O)
     #[arg(long)]
     executables_only: bool,
+
+    /// Cross-reference results with VirusTotal (requires VIRUSTOTAL_API_KEY env var)
+    #[arg(long)]
+    virustotal: bool,
 }
 
 fn main() -> Result<()> {
@@ -56,6 +60,7 @@ fn main() -> Result<()> {
         target_paths: cli.paths,
         threshold: cli.threshold,
         executables_only: cli.executables_only,
+        virustotal: cli.virustotal,
     };
 
     let progress = Arc::new(ScanProgress::new());

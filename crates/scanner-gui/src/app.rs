@@ -24,6 +24,7 @@ pub struct ScannerApp {
     pub target_paths: Vec<PathBuf>,
     pub threshold: f32,
     pub executables_only: bool,
+    pub virustotal: bool,
 
     // State
     pub state: ScanState,
@@ -50,6 +51,7 @@ impl ScannerApp {
             target_paths: Vec::new(),
             threshold: 0.5,
             executables_only: false,
+            virustotal: false,
             state: ScanState::Idle,
             progress: Arc::new(ScanProgress::new()),
             results: Vec::new(),
@@ -86,6 +88,7 @@ impl ScannerApp {
             target_paths: self.target_paths.clone(),
             threshold: self.threshold,
             executables_only: self.executables_only,
+            virustotal: self.virustotal,
         };
 
         let progress = Arc::clone(&self.progress);

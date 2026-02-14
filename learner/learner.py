@@ -38,6 +38,8 @@ def main():
     parser.add_argument("--model-dir", type=str, default=None, help="Model output directory")
     parser.add_argument("--malware-count", type=int, default=100, help="Number of malware samples")
     parser.add_argument("--benign-count", type=int, default=100, help="Number of benign samples")
+    parser.add_argument("--vt-download", action="store_true", help="Also download samples from VirusTotal (requires VIRUSTOTAL_API_KEY)")
+    parser.add_argument("--vt-malware-count", type=int, default=100, help="Number of VT malware samples to download")
     parser.add_argument("--epochs", type=int, default=100, help="Max training epochs")
     parser.add_argument("--batch-size", type=int, default=8, help="Training batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
@@ -74,6 +76,24 @@ def main():
             str(benign_dir), count=args.benign_count
         )
         save_manifest(ben_manifest, str(benign_manifest))
+
+        # VirusTotal sample download (optional)
+        if args.vt_download:
+            try:
+                from vt_downloader import VirusTotalDownloader
+
+                vt_dir = data_dir / "malware_vt"
+                downloader = VirusTotalDownloader()
+                vt_manifest = downloader.download_malware_samples(
+                    str(vt_dir), count=args.vt_malware_count
+                )
+                if vt_manifest:
+                    mal_manifest.extend(vt_manifest)
+                    save_manifest(mal_manifest, str(malware_manifest))
+                    print(f"[*] Added {len(vt_manifest)} VT samples to malware manifest")
+            except Exception as e:
+                print(f"[!] VirusTotal download failed: {e}")
+                print("[*] Continuing with MalwareBazaar samples only...")
 
         # Build bigram table from all samples
         all_paths = [e["path"] for e in mal_manifest + ben_manifest]

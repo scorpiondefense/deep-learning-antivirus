@@ -20,6 +20,7 @@ pub struct ScanConfig {
     pub target_paths: Vec<PathBuf>,
     pub threshold: f32,
     pub executables_only: bool,
+    pub virustotal: bool,
 }
 
 /// Atomic progress tracking — no Mutex contention with the GUI thread.
@@ -126,6 +127,9 @@ pub fn run_scan(config: &ScanConfig, progress: &Arc<ScanProgress>) -> Result<Vec
                             score,
                             is_malicious,
                             error: None,
+                            vt_positives: None,
+                            vt_total: None,
+                            vt_permalink: None,
                         }
                     }
                     Err(e) => {
@@ -135,6 +139,9 @@ pub fn run_scan(config: &ScanConfig, progress: &Arc<ScanProgress>) -> Result<Vec
                             score: 0.0,
                             is_malicious: false,
                             error: Some(format!("inference error: {e}")),
+                            vt_positives: None,
+                            vt_total: None,
+                            vt_permalink: None,
                         }
                     }
                 },
@@ -145,6 +152,9 @@ pub fn run_scan(config: &ScanConfig, progress: &Arc<ScanProgress>) -> Result<Vec
                         score: 0.0,
                         is_malicious: false,
                         error: Some(format!("feature extraction error: {e}")),
+                        vt_positives: None,
+                        vt_total: None,
+                        vt_permalink: None,
                     }
                 }
             };
@@ -153,6 +163,43 @@ pub fn run_scan(config: &ScanConfig, progress: &Arc<ScanProgress>) -> Result<Vec
             Some(result)
         })
         .collect();
+
+    // VirusTotal confirmation pass (sequential due to rate limiting)
+    if config.virustotal {
+        let mut results = results;
+        match crate::virustotal::VirusTotalClient::from_env() {
+            Ok(mut vt_client) => {
+                for result in &mut results {
+                    if progress.cancel.load(Ordering::Relaxed) {
+                        break;
+                    }
+                    if result.error.is_some() {
+                        continue;
+                    }
+                    match crate::virustotal::sha256_file(&result.path) {
+                        Ok(hash) => match vt_client.lookup_hash(&hash) {
+                            Ok(Some(report)) => {
+                                result.vt_positives = Some(report.positives);
+                                result.vt_total = Some(report.total);
+                                result.vt_permalink = Some(report.permalink);
+                            }
+                            Ok(None) => {} // File not in VT database
+                            Err(e) => {
+                                eprintln!("[VT] Lookup error for {}: {e}", result.path.display());
+                            }
+                        },
+                        Err(e) => {
+                            eprintln!("[VT] Hash error for {}: {e}", result.path.display());
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("[VT] Could not initialize VirusTotal client: {e}");
+            }
+        }
+        return Ok(results);
+    }
 
     Ok(results)
 }

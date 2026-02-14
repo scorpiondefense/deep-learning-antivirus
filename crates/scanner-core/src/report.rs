@@ -10,6 +10,12 @@ pub struct ScanResult {
     pub is_malicious: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vt_positives: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vt_total: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vt_permalink: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -48,7 +54,11 @@ fn print_text(results: &[ScanResult]) {
     if !malicious.is_empty() {
         println!("\nMALICIOUS FILES ({}):", malicious.len());
         for r in &malicious {
-            println!("  [{:.4}] {}", r.score, r.path.display());
+            print!("  [{:.4}] {}", r.score, r.path.display());
+            if let (Some(pos), Some(total)) = (r.vt_positives, r.vt_total) {
+                print!("  [VT: {pos}/{total}]");
+            }
+            println!();
         }
     }
 

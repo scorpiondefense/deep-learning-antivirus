@@ -70,6 +70,7 @@ fn draw_results(ui: &mut egui::Ui, app: &mut ScannerApp) {
                     ui.strong("Path");
                     ui.strong("Score");
                     ui.strong("Status");
+                    ui.strong("VT");
                     ui.end_row();
 
                     for result in &app.results {
@@ -81,17 +82,30 @@ fn draw_results(ui: &mut egui::Ui, app: &mut ScannerApp) {
                         ui.monospace(&path_str);
 
                         if result.error.is_some() {
-                            ui.label("—");
+                            ui.label("\u{2014}");
                             ui.colored_label(
                                 theme::COLOR_ERROR,
                                 result.error.as_deref().unwrap_or("ERROR"),
                             );
+                            ui.label("\u{2014}");
                         } else {
                             ui.monospace(format!("{:.4}", result.score));
                             if result.is_malicious {
                                 ui.colored_label(theme::COLOR_MALICIOUS, "MALICIOUS");
                             } else {
                                 ui.colored_label(theme::COLOR_CLEAN, "CLEAN");
+                            }
+                            if let (Some(pos), Some(total)) =
+                                (result.vt_positives, result.vt_total)
+                            {
+                                let label = format!("{pos}/{total}");
+                                if pos > 0 {
+                                    ui.colored_label(theme::COLOR_MALICIOUS, label);
+                                } else {
+                                    ui.colored_label(theme::COLOR_CLEAN, label);
+                                }
+                            } else {
+                                ui.label("\u{2014}");
                             }
                         }
                         ui.end_row();

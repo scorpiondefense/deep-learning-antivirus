@@ -92,6 +92,7 @@ pub fn draw_sidebar(ctx: &egui::Context, app: &mut ScannerApp) {
                     ui.add(egui::Slider::new(&mut app.threshold, 0.0..=1.0).step_by(0.05));
                 });
                 ui.checkbox(&mut app.executables_only, "Executables only");
+                ui.checkbox(&mut app.virustotal, "Confirm with VirusTotal");
 
                 ui.add_space(8.0);
 

@@ -7,3 +7,4 @@ pub mod features;
 pub mod inference;
 pub mod report;
 pub mod scan;
+pub mod virustotal;
