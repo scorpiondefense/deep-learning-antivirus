@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use scanner_core::report::ScanResult;
-use scanner_core::scan::{ScanConfig, ScanProgress, run_scan};
+use scanner_core::scan::{run_scan, ScanConfig, ScanProgress};
 
 /// Application state machine.
 #[derive(Debug, Clone, PartialEq, Eq)]

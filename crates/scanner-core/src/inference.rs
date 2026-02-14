@@ -29,13 +29,14 @@ impl MalwareModel {
     /// Returns a maliciousness score in [0.0, 1.0].
     pub fn predict(&self, features: &Array4<f32>) -> Result<f32> {
         // Add batch dimension: (64,3,16,16) -> (1,64,3,16,16)
-        let input = features
-            .clone()
-            .into_shape_with_order((1, 64, 3, 16, 16))?;
+        let input = features.clone().into_shape_with_order((1, 64, 3, 16, 16))?;
 
         let input_tensor = TensorRef::from_array_view(&input)?;
 
-        let mut session = self.session.lock().map_err(|e| anyhow::anyhow!("lock error: {e}"))?;
+        let mut session = self
+            .session
+            .lock()
+            .map_err(|e| anyhow::anyhow!("lock error: {e}"))?;
         let outputs = session.run(ort::inputs!["input" => input_tensor])?;
 
         let output_array = outputs["output"].try_extract_array::<f32>()?;

@@ -29,9 +29,7 @@ impl Scanner {
     /// Returns a maliciousness score in [0.0, 1.0].
     pub fn predict(&self, features: &Array4<f32>) -> Result<f32> {
         // Add batch dimension: (64,3,16,16) -> (1,64,3,16,16)
-        let input = features
-            .clone()
-            .into_shape_with_order((1, 64, 3, 16, 16))?;
+        let input = features.clone().into_shape_with_order((1, 64, 3, 16, 16))?;
 
         let input_tensor = TensorRef::from_array_view(&input)?;
 

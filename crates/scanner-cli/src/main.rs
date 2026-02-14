@@ -12,8 +12,8 @@ use std::sync::Arc;
 use anyhow::Result;
 use clap::Parser;
 
-use scanner_core::report::{OutputFormat, print_results};
-use scanner_core::scan::{ScanConfig, ScanProgress, run_scan};
+use scanner_core::report::{print_results, OutputFormat};
+use scanner_core::scan::{run_scan, ScanConfig, ScanProgress};
 
 #[derive(Parser)]
 #[command(name = "malware-scanner")]
@@ -52,7 +52,10 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     eprintln!("[*] Loading model from {}...", cli.model.display());
-    eprintln!("[*] Loading feature config from {}...", cli.config.display());
+    eprintln!(
+        "[*] Loading feature config from {}...",
+        cli.config.display()
+    );
 
     let config = ScanConfig {
         model_path: cli.model,

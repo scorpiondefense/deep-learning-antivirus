@@ -98,7 +98,10 @@ fn main() -> Result<()> {
     eprintln!("[*] Loading model from {}...", cli.model.display());
     let scanner = Arc::new(Scanner::new(&cli.model)?);
 
-    eprintln!("[*] Loading feature config from {}...", cli.config.display());
+    eprintln!(
+        "[*] Loading feature config from {}...",
+        cli.config.display()
+    );
     let feature_config = load_feature_config(&cli.config)?;
     let bigram_table = Arc::new(feature_config.bigram_table);
 
@@ -114,29 +117,27 @@ fn main() -> Result<()> {
 
     let results: Vec<ScanResult> = files
         .par_iter()
-        .map(|path| {
-            match extract_features(path, &bigram_table) {
-                Ok(features) => match scanner.predict(&features) {
-                    Ok(score) => ScanResult {
-                        path: path.clone(),
-                        score,
-                        is_malicious: score >= threshold,
-                        error: None,
-                    },
-                    Err(e) => ScanResult {
-                        path: path.clone(),
-                        score: 0.0,
-                        is_malicious: false,
-                        error: Some(format!("inference error: {e}")),
-                    },
+        .map(|path| match extract_features(path, &bigram_table) {
+            Ok(features) => match scanner.predict(&features) {
+                Ok(score) => ScanResult {
+                    path: path.clone(),
+                    score,
+                    is_malicious: score >= threshold,
+                    error: None,
                 },
                 Err(e) => ScanResult {
                     path: path.clone(),
                     score: 0.0,
                     is_malicious: false,
-                    error: Some(format!("feature extraction error: {e}")),
+                    error: Some(format!("inference error: {e}")),
                 },
-            }
+            },
+            Err(e) => ScanResult {
+                path: path.clone(),
+                score: 0.0,
+                is_malicious: false,
+                error: Some(format!("feature extraction error: {e}")),
+            },
         })
         .collect();
 

@@ -6,19 +6,17 @@ use crate::app::{ScanState, ScannerApp};
 use crate::ui::theme;
 
 pub fn draw_scan_view(ctx: &egui::Context, app: &mut ScannerApp) {
-    egui::CentralPanel::default().show(ctx, |ui| {
-        match app.state {
-            ScanState::Idle => {
-                ui.centered_and_justified(|ui| {
-                    ui.label("Select a model, config, and scan targets, then click SCAN.");
-                });
-            }
-            ScanState::Scanning => {
-                draw_progress(ui, app);
-            }
-            ScanState::Complete => {
-                draw_results(ui, app);
-            }
+    egui::CentralPanel::default().show(ctx, |ui| match app.state {
+        ScanState::Idle => {
+            ui.centered_and_justified(|ui| {
+                ui.label("Select a model, config, and scan targets, then click SCAN.");
+            });
+        }
+        ScanState::Scanning => {
+            draw_progress(ui, app);
+        }
+        ScanState::Complete => {
+            draw_results(ui, app);
         }
     });
 }
@@ -95,8 +93,7 @@ fn draw_results(ui: &mut egui::Ui, app: &mut ScannerApp) {
                             } else {
                                 ui.colored_label(theme::COLOR_CLEAN, "CLEAN");
                             }
-                            if let (Some(pos), Some(total)) =
-                                (result.vt_positives, result.vt_total)
+                            if let (Some(pos), Some(total)) = (result.vt_positives, result.vt_total)
                             {
                                 let label = format!("{pos}/{total}");
                                 if pos > 0 {

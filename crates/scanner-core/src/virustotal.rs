@@ -6,7 +6,7 @@
 
 use std::time::{Duration, Instant};
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 const VT_API_BASE: &str = "https://www.virustotal.com/api/v3";

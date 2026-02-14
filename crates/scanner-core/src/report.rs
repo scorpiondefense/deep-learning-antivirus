@@ -88,5 +88,8 @@ fn print_json(results: &[ScanResult]) {
             "errors": results.iter().filter(|r| r.error.is_some()).count(),
         }
     });
-    println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default());
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&output).unwrap_or_default()
+    );
 }
